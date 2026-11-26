@@ -1,0 +1,36 @@
+<main class="page">
+  <h2>{{ session.isAdmin ? 'Admin dashboard' : 'My dashboard' }}</h2>
+  <div class="grid">
+    <section class="card profile">
+      <h3>Account</h3>
+      <dl *ngIf="me$ | async as u; else wait1">
+        <dt>User ID</dt><dd>{{ u.id }}</dd><dt>Name</dt><dd>{{ u.name }}</dd><dt>Email</dt><dd>{{ u.email }}</dd>
+        <dt>Role</dt><dd>{{ u.role }}</dd><dt>Status</dt><dd><app-badge [value]="u.status"></app-badge></dd>
+        <dt>Access</dt><dd>{{ u.accessName }} <span class="muted">(level {{ u.accessLevel }} of 3)</span></dd>
+      </dl>
+      <ng-template #wait1><p class="loading"><i class="spin"></i>Loading account…</p></ng-template>
+    </section>
+    <app-api-activity></app-api-activity>
+  </div>
+
+  <div class="tiles" *ngIf="session.isAdmin">
+    <ng-container *ngIf="users$ | async as us; else wait2">
+      <div class="tile"><b>{{ us.length }}</b>Total users</div>
+      <div class="tile"><b>{{ count(us, isActive) }}</b>Active</div>
+      <div class="tile"><b>{{ count(us, isAdmin) }}</b>Admins</div>
+    </ng-container>
+    <ng-template #wait2><p class="loading"><i class="spin"></i>Loading user summary…</p></ng-template>
+  </div>
+
+  <section class="card">
+    <h3>{{ session.isAdmin ? 'All records' : 'My records' }}</h3>
+    <table *ngIf="records$ | async as rows; else wait3">
+      <thead><tr><th>Record ID</th><th>Description</th><th>Status</th><th>Classification</th><th>Your access</th><th *ngIf="session.isAdmin">Owner</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let r of rows" [class.locked]="!r.accessible"><td>{{ r.id }}</td><td>{{ r.description }}</td><td><app-badge [value]="r.status"></app-badge></td><td>{{ r.levelName }}</td><td><app-badge [value]="r.accessible ? 'Can open' : 'Restricted'"></app-badge></td><td *ngIf="session.isAdmin">{{ r.ownerId }}</td></tr>
+        <tr *ngIf="!rows.length"><td colspan="6" class="muted">No records assigned to you yet.</td></tr>
+      </tbody>
+    </table>
+    <ng-template #wait3><p class="loading"><i class="spin"></i>Loading records…</p></ng-template>
+  </section>
+</main>

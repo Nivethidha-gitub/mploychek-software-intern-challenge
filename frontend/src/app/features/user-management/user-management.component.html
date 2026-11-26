@@ -1,0 +1,33 @@
+<main class="page">
+  <div class="bar"><h2>User management</h2><button class="primary" (click)="add()">Add user</button></div>
+  <p class="err" *ngIf="error && !open" role="alert">{{ error }}</p>
+
+  <form class="card panel" *ngIf="open" [formGroup]="f" (ngSubmit)="save()">
+    <h3>{{ editing ? 'Edit ' + editing.id : 'Add a user' }}</h3>
+    <div class="fields">
+      <label>User ID<input formControlName="id"></label>
+      <label>Name<input formControlName="name"></label>
+      <label>Email<input formControlName="email" type="email"></label>
+      <label>{{ editing ? 'New password (optional)' : 'Password' }}<input formControlName="password" type="password" autocomplete="new-password"></label>
+      <label>Role<select formControlName="role"><option>General User</option><option>Admin</option></select></label>
+    </div>
+    <p class="err" *ngIf="error" role="alert">{{ error }}</p>
+    <div class="actions"><button type="button" class="ghost" (click)="cancel()">Cancel</button>
+      <button class="primary" [disabled]="f.invalid || saving">{{ saving ? 'Saving…' : editing ? 'Save changes' : 'Create user' }}</button></div>
+  </form>
+
+  <section class="card">
+    <table *ngIf="users$ | async as list; else wait">
+      <thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
+      <tbody><tr *ngFor="let u of list">
+        <td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.role }}</td><td><app-badge [value]="u.status"></app-badge></td>
+        <td class="row-actions">
+          <button class="ghost" [disabled]="busyId === u.id" (click)="edit(u)">Edit</button>
+          <button class="ghost" [disabled]="busyId === u.id || u.id === session.user?.id" (click)="toggle(u)">{{ u.status === 'Active' ? 'Deactivate' : 'Activate' }}</button>
+          <button class="ghost danger" [disabled]="busyId === u.id || u.id === session.user?.id" (click)="remove(u)">Delete</button>
+        </td></tr></tbody>
+    </table>
+    <ng-template #wait><p class="loading"><i class="spin"></i>Loading users…</p></ng-template>
+  </section>
+  <app-api-activity></app-api-activity>
+</main>
